@@ -20,36 +20,38 @@ def send_email(school, email_from, email_to):
     s.quit()
 
 #-------------------------------------------------------------------------------
-email_from = "jameslsherman@gmail.com"
-email_to = "jameslsherman@yahoo.com"
-school = "sab"
-url = "https://www.sab.org/summer_programs/us_auditions/national_audition_tour.php"
+def sab():
+    email_from = "jameslsherman@gmail.com"
+    email_to = "jameslsherman@yahoo.com"
+    school = "sab"
+    url = "https://www.sab.org/summer_programs/us_auditions/national_audition_tour.php"
 
-# Make a GET request to fetch the raw HTML content
-response = requests.get(url)
+    # Make a GET request to fetch the raw HTML content
+    response = requests.get(url)
 
-# Parse the html content
-soup = BeautifulSoup(response.text, "lxml")
-# print(soup.prettify()) # print the parsed data of html
+    # Parse the html content
+    soup = BeautifulSoup(response.text, "lxml")
+    # print(soup.prettify()) # print the parsed data of html
 
-filename1 = school + "_" + date.today().strftime("%Y%m%d") + ".html"
-with open(filename1, "w") as file:
-    file.write(str(soup))
-file.close()
+    filename1 = school + "_" + date.today().strftime("%Y%m%d") + ".html"
+    with open(filename1, "w") as file:
+        file.write(str(soup))
+    file.close()
 
-yesterday = date.today() - timedelta(days=1)
-filename2 = school + "_" + yesterday.strftime("%Y%m%d") + ".html"
+    yesterday = date.today() - timedelta(days=1)
+    filename2 = school + "_" + yesterday.strftime("%Y%m%d") + ".html"
 
-is_diff = False
-with open(filename1) as f1:
-   with open(filename2) as f2:
-      if f1.read() != f2.read():
-          print("diff")
-          is_diff = True
+    is_diff = False
+    with open(filename1) as f1:
+       with open(filename2) as f2:
+          if f1.read() != f2.read():
+              print("diff")
+              is_diff = True
 
-if (is_diff):
-    send_email(school, email_from, email_to)
+    if (is_diff):
+        send_email(school, email_from, email_to)
 
+sab()
 # Pull all text from the div
 # cities = soup.find_all(class_="interior list-title")
 # #

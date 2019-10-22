@@ -1,71 +1,33 @@
-# importing the libraries
-from bs4 import BeautifulSoup
-# import re
-import requests
-from datetime import date, timedelta
+"""Function called by PubSub trigger to execute cron job tasks."""
+import datetime
+import logging
+from string import Template
+# import config
+import sab
 
-#-------------------------------------------------------------------------------
-def send_email(school, email_from, email_to):
-    import smtplib
-    from email.message import EmailMessage
+def main(data, context):
+    """Triggered from a message on a Cloud Pub/Sub topic.
+    Args:
+        data (dict): Event payload.
+        context (google.cloud.functions.Context): Metadata for the event.
+    """
+    try:
+        current_time = datetime.datetime.utcnow()
+        log_message = Template('Cloud Function was triggered on $time')
+        logging.info(log_message.safe_substitute(time=current_time))
 
-    msg = EmailMessage()
-    msg['Subject'] = school
-    msg['From'] = email_from
-    msg['To'] = email_to
+        try:
+            # execute_query(bq_client)
+            sab()
 
-    # Send the message via our own SMTP server.
-    s = smtplib.SMTP('localhost')
-    s.send_message(msg)
-    s.quit()
+        except Exception as error:
+            log_message = Template('Query failed due to '
+                                   '$message.')
+            logging.error(log_message.safe_substitute(message=error))
 
-#-------------------------------------------------------------------------------
-email_from = "jameslsherman@gmail.com"
-email_to = "jameslsherman@yahoo.com"
-school = "sab"
-url = "https://www.sab.org/summer_programs/us_auditions/national_audition_tour.php"
+    except Exception as error:
+        log_message = Template('$error').substitute(error=error)
+        logging.error(log_message)
 
-# Make a GET request to fetch the raw HTML content
-response = requests.get(url)
-
-# Parse the html content
-soup = BeautifulSoup(response.text, "lxml")
-# print(soup.prettify()) # print the parsed data of html
-
-filename1 = school + "_" + date.today().strftime("%Y%m%d") + ".html"
-with open(filename1, "w") as file:
-    file.write(str(soup))
-file.close()
-
-yesterday = date.today() - timedelta(days=1)
-filename2 = school + "_" + yesterday.strftime("%Y%m%d") + ".html"
-
-is_diff = False
-with open(filename1) as f1:
-   with open(filename2) as f2:
-      if f1.read() != f2.read():
-          print("diff")
-          is_diff = True
-
-if (is_diff):
-    send_email(school, email_from, email_to)
-
-# Pull all text from the div
-# cities = soup.find_all(class_="interior list-title")
-# #
-# # # Create for loop to print out all artists' names
-# for idx, city in enumerate(cities):
-#     print(idx, city.text)
-# #    print(idx, row.prettify())
-#
-# tables = soup.find_all('table')
-# for idx, table in enumerate(tables):
-#     print(cities[idx])
-#     for trs in table.find_all('tr'):
-#         for tds in trs.find_all('td'):
-#             print(idx, tds)
-#             break
-#
-# years = soup.find_all("strong",text=re.compile("2019"))
-# for year in years:
-#     print(year)
+if __name__ == '__main__':
+    main('data', 'context')
