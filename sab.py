@@ -42,11 +42,12 @@ def sab():
     filename2 = school + "_" + yesterday.strftime("%Y%m%d") + ".html"
 
     is_diff = False
-    with open(filename1) as f1:
-       with open(filename2) as f2:
-          if f1.read() != f2.read():
-              print("diff")
-              is_diff = True
+    if path.exists(filename2):
+        with open(filename1) as f1:
+           with open(filename2) as f2:
+              if f1.read() != f2.read():
+                  print("diff")
+                  is_diff = True
 
     if (is_diff):
         send_email(school, email_from, email_to)
