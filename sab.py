@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 # import re
 import requests
 from datetime import date, timedelta
+import os.path
+from os import path
 
 #-------------------------------------------------------------------------------
 def send_email(school, email_from, email_to):
