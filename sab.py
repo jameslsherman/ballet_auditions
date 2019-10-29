@@ -23,8 +23,8 @@ def send_email(school, email_from, email_to):
 
 #-------------------------------------------------------------------------------
 def sab():
-    email_from = "jameslsherman@gmail.com"
-    email_to = "jameslsherman@yahoo.com"
+    email_from = "from@example.com"
+    email_to = "to@example.com"
     school = "sab"
     url = "https://www.sab.org/summer_programs/us_auditions/national_audition_tour.php"
 
