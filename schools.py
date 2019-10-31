@@ -38,7 +38,7 @@ def read_schools():
             url = row['url']
 
             print(school)
-            print(url)
+            # print(url)
 
             # Make a GET request to fetch the raw HTML content
             response = requests.get(url)
@@ -48,7 +48,7 @@ def read_schools():
             # print(soup.prettify()) # print the parsed data of html
 
             # remove tags
-            [s.extract() for s in soup(['footer','head','img','link','meta','noscript','script','style','svg'])]
+            [s.extract() for s in soup(['footer','head','iframe','img','link','meta','noscript','script','style','svg'])]
 
             # remove comments
             comments = soup.findAll(text=lambda text:isinstance(text, Comment))
@@ -75,7 +75,7 @@ def read_schools():
                 with io.open(filename1, encoding="utf-8") as f1:
                    with io.open(filename2, encoding="utf-8") as f2:
                       if f1.read() != f2.read():
-                          print("diff")
+                          print(school, " diff")
                           is_diff = True
 
             if (is_diff):
