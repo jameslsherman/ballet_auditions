@@ -1,20 +1,20 @@
 # importing the libraries
-from bs4 import BeautifulSoup
-# import re
 import csv
 import io
+import re
 import requests
+
+from bs4 import BeautifulSoup, Comment
 from datetime import date, timedelta
-import os.path
 from os import path
 
 #-------------------------------------------------------------------------------
-def send_email(school, email_from, email_to):
+def send_email(school):
     import smtplib
     from email.message import EmailMessage
 
-    email_from = "from@example.com"
-    email_to = "to@example.com"
+    email_from = "jameslsherman@yahoo.com"
+    email_to = "jameslsherman@gmail.com"
 
     msg = EmailMessage()
     msg['Subject'] = school
@@ -22,9 +22,9 @@ def send_email(school, email_from, email_to):
     msg['To'] = email_to
 
     # Send the message via our own SMTP server.
-    s = smtplib.SMTP('localhost')
-    s.send_message(msg)
-    s.quit()
+    # s = smtplib.SMTP('127.0.0.1')
+    # s.send_message(msg)
+    # s.quit()
 
 #-------------------------------------------------------------------------------
 def read_schools():
@@ -47,9 +47,24 @@ def read_schools():
             soup = BeautifulSoup(response.text, "lxml")
             # print(soup.prettify()) # print the parsed data of html
 
+            # remove tags
+            [s.extract() for s in soup(['footer','head','img','link','meta','noscript','script','style','svg'])]
+
+            # remove comments
+            comments = soup.findAll(text=lambda text:isinstance(text, Comment))
+            [comment.extract() for comment in comments]
+
+            # remove attributes
+            for tag in soup():
+                for attribute in ['class','href','id','name','style','target']:
+                    del tag[attribute]
+
+            # remove multiple line breaks
+            output = re.sub(r'\n\s*\n', '\n\n', str(soup))
+
             filename1 = school + "_" + date.today().strftime("%Y%m%d") + ".html"
             with io.open(filename1, "w", encoding="utf-8") as file:
-                file.write(str(soup))
+                file.write(output)
             file.close()
 
             yesterday = date.today() - timedelta(days=1)
@@ -57,14 +72,14 @@ def read_schools():
 
             is_diff = False
             if path.exists(filename2):
-                with open(filename1) as f1:
-                   with open(filename2) as f2:
+                with io.open(filename1, encoding="utf-8") as f1:
+                   with io.open(filename2, encoding="utf-8") as f2:
                       if f1.read() != f2.read():
                           print("diff")
                           is_diff = True
 
             if (is_diff):
-                send_email(school, email_from, email_to)
+                send_email(school)
 
 read_schools()
 # Pull all text from the div
