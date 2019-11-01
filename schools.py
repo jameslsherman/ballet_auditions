@@ -1,12 +1,50 @@
 # importing the libraries
 import csv
 import io
-import re
 import requests
 
 from bs4 import BeautifulSoup, Comment
 from datetime import date, timedelta
 from os import path
+
+#-------------------------------------------------------------------------------
+def remove_tags(soup):
+    import re
+
+    # remove tags
+    [s.extract() for s in soup(['footer','head','iframe','img','link','meta','noscript','script','style','svg'])]
+
+    # remove comments
+    comments = soup.findAll(text=lambda text:isinstance(text, Comment))
+    [comment.extract() for comment in comments]
+
+    # remove attributes
+    for tag in soup():
+        for attribute in ['class','href','id','name','style','target']:
+            del tag[attribute]
+
+    # remove multiple line breaks
+    output = re.sub(r'\n\s*\n', '\n\n', str(soup))
+
+    return output
+
+#-------------------------------------------------------------------------------
+def open_files(school, output):
+
+    filename1 = school + "_" + date.today().strftime("%Y%m%d") + ".html"
+    with io.open(filename1, "w", encoding="utf-8") as file:
+        file.write(output)
+    file.close()
+
+    yesterday = date.today() - timedelta(days=1)
+    filename2 = school + "_" + yesterday.strftime("%Y%m%d") + ".html"
+
+    twodaysago = date.today() - timedelta(days=2)
+    filename3 = school + "_" + twodaysago.strftime("%Y%m%d") + ".html"
+    if path.exists(filename3):
+        remove(filename3)
+
+    return filename1, filename2
 
 #-------------------------------------------------------------------------------
 def send_email(school):
@@ -47,28 +85,8 @@ def read_schools():
             soup = BeautifulSoup(response.text, "lxml")
             # print(soup.prettify()) # print the parsed data of html
 
-            # remove tags
-            [s.extract() for s in soup(['footer','head','iframe','img','link','meta','noscript','script','style','svg'])]
-
-            # remove comments
-            comments = soup.findAll(text=lambda text:isinstance(text, Comment))
-            [comment.extract() for comment in comments]
-
-            # remove attributes
-            for tag in soup():
-                for attribute in ['class','href','id','name','style','target']:
-                    del tag[attribute]
-
-            # remove multiple line breaks
-            output = re.sub(r'\n\s*\n', '\n\n', str(soup))
-
-            filename1 = school + "_" + date.today().strftime("%Y%m%d") + ".html"
-            with io.open(filename1, "w", encoding="utf-8") as file:
-                file.write(output)
-            file.close()
-
-            yesterday = date.today() - timedelta(days=1)
-            filename2 = school + "_" + yesterday.strftime("%Y%m%d") + ".html"
+            output = remove_tags(soup)
+            filename1, filename2 = open_files(school, output)
 
             is_diff = False
             if path.exists(filename2):
