@@ -1,6 +1,7 @@
 # importing the libraries
 import csv
 import io
+import os
 import requests
 
 from bs4 import BeautifulSoup, Comment
@@ -12,7 +13,7 @@ def remove_tags(soup):
     import re
 
     # remove tags
-    [s.extract() for s in soup(['footer','head','iframe','img','link','meta','noscript','script','style','svg'])]
+    [s.extract() for s in soup(['footer','head','iframe','img','input','link','meta','noscript','script','style','svg'])]
 
     # remove comments
     comments = soup.findAll(text=lambda text:isinstance(text, Comment))
@@ -42,7 +43,7 @@ def open_files(school, output):
     twodaysago = date.today() - timedelta(days=2)
     filename3 = school + "_" + twodaysago.strftime("%Y%m%d") + ".html"
     if path.exists(filename3):
-        remove(filename3)
+        os.remove(filename3)
 
     return filename1, filename2
 
@@ -81,23 +82,27 @@ def read_schools():
             # Make a GET request to fetch the raw HTML content
             response = requests.get(url)
 
-            # Parse the html content
-            soup = BeautifulSoup(response.text, "lxml")
-            # print(soup.prettify()) # print the parsed data of html
+            if response.status_code == 200:
+                # Parse the html content
+                soup = BeautifulSoup(response.text, "lxml")
+                # print(soup.prettify()) # print the parsed data of html
 
-            output = remove_tags(soup)
-            filename1, filename2 = open_files(school, output)
+                output = remove_tags(soup)
+                filename1, filename2 = open_files(school, output)
 
-            is_diff = False
-            if path.exists(filename2):
-                with io.open(filename1, encoding="utf-8") as f1:
-                   with io.open(filename2, encoding="utf-8") as f2:
-                      if f1.read() != f2.read():
-                          print(school, " diff")
-                          is_diff = True
+                is_diff = False
+                if path.exists(filename2):
+                    with io.open(filename1, encoding="utf-8") as f1:
+                       with io.open(filename2, encoding="utf-8") as f2:
+                          if f1.read() != f2.read():
+                              print(school, " diff")
+                              is_diff = True
 
-            if (is_diff):
-                send_email(school)
+                if (is_diff):
+                    send_email(school)
+
+            else:
+                print(school, response.status_code)
 
 read_schools()
 # Pull all text from the div
