@@ -24,14 +24,18 @@ def remove_tags(soup):
         for attribute in ['class','href','id','name','style','target']:
             del tag[attribute]
 
+    # remove whitespace
+    output = re.sub(' +', ' ', str(soup))
+
     # remove multiple line breaks
-    output = re.sub(r'\n\s*\n', '\n\n', str(soup))
+    output = re.sub(r'\n\s*\n', '\n\n', output)
 
     return output
 
 #-------------------------------------------------------------------------------
 def open_files(school, output):
 
+    # TODO: add timezone ?
     filename1 = school + "_" + date.today().strftime("%Y%m%d") + ".html"
     with io.open(filename1, "w", encoding="utf-8") as file:
         file.write(output)
