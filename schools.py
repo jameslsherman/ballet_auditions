@@ -2,10 +2,11 @@
 import csv
 import io
 import os
+import pytz
 import requests
 
 from bs4 import BeautifulSoup, Comment
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from os import path
 
 #-------------------------------------------------------------------------------
@@ -35,16 +36,17 @@ def remove_tags(soup):
 #-------------------------------------------------------------------------------
 def open_files(school, output):
 
-    # TODO: add timezone ?
-    filename1 = school + "_" + date.today().strftime("%Y%m%d") + ".html"
+    # TODO: America/Chicago timezone
+    CentralTime = datetime.now(pytz.timezone('America/Chicago'))
+    filename1 = school + "_" + CentralTime.strftime("%Y%m%d") + ".html"
     with io.open(filename1, "w", encoding="utf-8") as file:
         file.write(output)
     file.close()
 
-    yesterday = date.today() - timedelta(days=1)
+    yesterday = CentralTime - timedelta(days=1)
     filename2 = school + "_" + yesterday.strftime("%Y%m%d") + ".html"
 
-    twodaysago = date.today() - timedelta(days=2)
+    twodaysago = CentralTime - timedelta(days=2)
     filename3 = school + "_" + twodaysago.strftime("%Y%m%d") + ".html"
     if path.exists(filename3):
         os.remove(filename3)
